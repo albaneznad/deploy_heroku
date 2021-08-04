@@ -14,7 +14,7 @@ const lista = [
 ];
 
 app.get("/", function (req, res) {
-    res.send("Teste");
+    res.send("Vini Rules");
 });
 
 app.get("/filmes", function (req, res) {
