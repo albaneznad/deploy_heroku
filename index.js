@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
+const port = process.env.PORT || 3000;
 
 const lista = [
     {
@@ -47,6 +48,6 @@ app.delete("/filmes/:id", (req, res) => {
     res.send("Filme excluído com sucesso!");
 });
 
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log("Aplicação rodando em http://localhost:3000/");
 });
