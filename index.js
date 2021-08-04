@@ -8,9 +8,11 @@ const lista = [
     {
         id: 1,
         nome: "Os Goonies",
+    },
+    {
         id: 2,
         nome: "Pateta",
-    },
+    }
 ];
 
 app.get("/", function (req, res) {
