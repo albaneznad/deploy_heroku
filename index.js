@@ -1,55 +1,148 @@
-const express = require("express");
+const express = require('express');
+
+const bodyParser = require('body-parser');
+
+const mongodb = require('mongodb');
+
+const ObjectId = mongodb.ObjectId;
+
+(async () => {
+
+// const connectionString = 'mongodb://localhost:27017/deploy_heroku';
+const connectionString = 'mongodb+srv://admin:sorvete2211@cluster0.00ybv.mongodb.net/HEROKU_DB_CLOUD?retryWrites=true&w=majority';
+
+console.info('Conectando ao MongoDB...');
+
+const options = {
+    useUnifiedTopology: true
+};
+
+const client = await mongodb.MongoClient.connect(connectionString, options);
+
 const app = express();
 
-app.use(express.json());
 const port = process.env.PORT || 3000;
 
-const lista = [
-    {
-        id: 1,
-        nome: "Os Goonies",
-    },
-    {
-        id: 2,
-        nome: "Pateta",
+app.use(bodyParser.json());
+
+app.get('/ola', (req, res) => {
+  res.send('Olá Mundo');
+});
+
+const db = client.db('heroku_db_cloud');
+const mensagens = db.collection('mensagens');
+
+const getMensagensValidas = () => mensagens.find({}).toArray();
+
+const getMensagemById = async id => mensagens.findOne({ _id: ObjectId(id) });
+
+app.get('/mensagens', async (req, res) => {
+    res.send(await getMensagensValidas());
+});
+
+//get
+app.get('/mensagens/:id', async (req, res) => {
+    const id = req.params.id;
+
+    const mensagem = await getMensagemById(id);
+
+    if (!mensagem) {
+        res.send('Mensagem não encontrada.');
+
+        return;
     }
-];
 
-app.get("/", function (req, res) {
-    res.send("Vini Rules");
+    res.send(mensagem);
 });
 
-app.get("/filmes", function (req, res) {
-    res.send(lista.filter(Boolean));
+//post
+app.post('/mensagens', async (req, res) => {
+    const mensagem = req.body;
+
+    if (!mensagem
+        || !mensagem.texto
+        || !mensagem.usuario) {
+        res.send('Mensagem inválida.');
+
+        return;
+    }
+
+    const { insertedCount } = await mensagens.insertOne(mensagem);
+
+    if (insertedCount !== 1) {
+        res.send('Erro ao criar a mensagem.');
+
+        return;
+    }
+
+    res.send(mensagem);
 });
 
+//put
+app.put('/mensagens/:id', async (req, res) => {
+    const id = req.params.id;
 
-app.post("/filmes", (req, res) => {
-    const filme = req.body.nome;
+    const novaMensagem = req.body;
 
-    lista.push(filme);
+    if (!novaMensagem
+        || !novaMensagem.texto
+        || !novaMensagem.usuario) {
+        res.send('Mensagem inválida.');
 
-    res.status(201).send("Filme inserido com sucesso!");
+        return;
+    }
+
+    const quantidade_mensagens = await mensagens.countDocuments({ _id: ObjectId(id) });
+
+    if (quantidade_mensagens !== 1) {
+        res.send('Mensagem não encontrada');
+
+        return;
+    }
+
+    const { result } = await mensagens.updateOne(
+        {
+            _id: ObjectId(id)
+        },
+        {
+            $set: novaMensagem
+        }
+    );
+
+    if (result.ok !== 1) {
+        res.send('Erro ao atualizar a mensagem.');
+
+        return;
+    }
+
+    res.send(await getMensagemById(id));
 });
 
-app.put("/filmes/:id", (req, res) => {
-    const id = +req.params.id;
+// del_id
+app.delete('/mensagens/:id', async (req, res) => {
+    const id = req.params.id;
 
-    const novoFilme = req.body.nome;
+    const quantidade_mensagens = await mensagens.countDocuments({ _id: ObjectId(id) });
 
-    lista[id] = novoFilme;
+    if (quantidade_mensagens !== 1) {
+        res.send('Mensagem não encontrada.');
 
-    res.send("Filme atualizado com sucesso!");
-});
+        return;
+    }
+    
+    const { deletedCount } = await mensagens.deleteOne({ _id: ObjectId(id) });
 
-app.delete("/filmes/:id", (req, res) => {
-    const id = +req.params.id;
+    if (deletedCount !== 1) {
+        res.send('Ocorreu um erro ao remover a mensagem.');
 
-    delete lista[id];
+        return;
+    }
 
-    res.send("Filme excluído com sucesso!");
+    res.send('Mensagem removida com sucesso.');
 });
 
 app.listen(port, () => {
-    console.log("Aplicação rodando em http://localhost:3000/");
+    console.info(`App rodando em http://localhost:${port}`);
 });
+
+})();
