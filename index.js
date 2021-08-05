@@ -9,7 +9,9 @@ const ObjectId = mongodb.ObjectId;
 (async () => {
 
 // const connectionString = 'mongodb://localhost:27017/deploy_heroku';
-const connectionString = 'mongodb+srv://admin:sorvete2211@cluster0.00ybv.mongodb.net/HEROKU_DB_CLOUD?retryWrites=true&w=majority';
+
+
+const connectionString = 'mongodb+srv://admin:sorvete2211@cluster0.00ybv.mongodb.net/heroku_db_cloud?retryWrites=true&w=majority';
 
 console.info('Conectando ao MongoDB...');
 
@@ -26,7 +28,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 app.get('/ola', (req, res) => {
-  res.send('Olá Mundo');
+  res.send('Ola Mundo');
 });
 
 const db = client.db('heroku_db_cloud');
@@ -40,7 +42,7 @@ app.get('/mensagens', async (req, res) => {
     res.send(await getMensagensValidas());
 });
 
-//get
+
 app.get('/mensagens/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -55,7 +57,7 @@ app.get('/mensagens/:id', async (req, res) => {
     res.send(mensagem);
 });
 
-//post
+
 app.post('/mensagens', async (req, res) => {
     const mensagem = req.body;
 
@@ -78,7 +80,7 @@ app.post('/mensagens', async (req, res) => {
     res.send(mensagem);
 });
 
-//put
+
 app.put('/mensagens/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -118,7 +120,7 @@ app.put('/mensagens/:id', async (req, res) => {
     res.send(await getMensagemById(id));
 });
 
-// del_id
+
 app.delete('/mensagens/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -133,7 +135,7 @@ app.delete('/mensagens/:id', async (req, res) => {
     const { deletedCount } = await mensagens.deleteOne({ _id: ObjectId(id) });
 
     if (deletedCount !== 1) {
-        res.send('Ocorreu um erro ao remover a mensagem.');
+        res.send('Erro ao remover a mensagem.');
 
         return;
     }
